@@ -1,0 +1,53 @@
+{
+  "name": "protour-locavia",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "typecheck": "tsc --noEmit",
+    "db:setup": "ts-node src/scripts/setupDatabase.ts",
+    "db:status": "ts-node src/scripts/checkDbStatus.ts",
+    "sync:all": "ts-node src/scripts/syncAll.ts",
+    "sync:parallel": "ts-node src/scripts/syncParallel.ts",
+    "sync:entity": "ts-node src/scripts/syncEntity.ts",
+    "sync:status": "ts-node src/scripts/syncStatus.ts",
+    "sync:test": "ts-node src/scripts/testBIEndpoints.ts",
+    "sync:test-endpoints": "ts-node src/scripts/testApiEndpoints.ts",
+    "sync:batched": "ts-node src/scripts/syncBatched.ts",
+    "db:create-tables": "ts-node src/scripts/createMissingTables.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/node": "^24.0.4",
+    "axios": "^1.10.0",
+    "chalk": "^4.1.2",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
+    "mysql2": "^3.14.1",
+    "node-cron": "^4.1.1",
+    "typescript": "^5.8.3",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/mysql": "^2.15.27",
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.35.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "eslint": "^9.29.0",
+    "jest": "^30.0.3",
+    "nodemon": "^3.1.10",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2"
+  }
+}

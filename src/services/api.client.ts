@@ -1,0 +1,274 @@
+import axios, { AxiosInstance, AxiosError } from 'axios';
+import { apiConfig } from '../config/api';
+import { ApiResponse, ApiError, AuthRequest, AuthResponse } from '../types/api.types';
+import logger from '../utils/logger';
+
+export class ApiClient {
+  private static instance: ApiClient | null = null;
+  private axiosInstance: AxiosInstance;
+  private token: string | null = null;
+  private tokenExpiry: Date | null = null;
+  private lastRequestTime: number = 0;
+  private minRequestInterval: number = 100; // Minimum 100ms between requests
+
+  public static getInstance(): ApiClient {
+    if (!ApiClient.instance) {
+      ApiClient.instance = new ApiClient();
+    }
+    return ApiClient.instance;
+  }
+
+  private constructor() {
+    this.axiosInstance = axios.create({
+      baseURL: apiConfig.baseUrl,
+      timeout: apiConfig.requestTimeout,
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // Request interceptor
+    this.axiosInstance.interceptors.request.use(
+      async (config) => {
+        // Only add token for non-auth requests
+        if (!config.url?.includes('/auth/access-token')) {
+          const token = await this.getValidToken();
+          config.headers['X-API-Key'] = token;
+        }
+        logger.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+        return config;
+      },
+      (error) => {
+        logger.error('Request interceptor error:', error);
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor
+    this.axiosInstance.interceptors.response.use(
+      (response) => {
+        logger.debug(`API Response: ${response.status} ${response.config.url}`);
+        return response;
+      },
+      async (error: AxiosError<ApiError>) => {
+        const originalRequest = error.config;
+        
+        if (error.response?.status === 401 && originalRequest && !originalRequest.url?.includes('/auth/access-token')) {
+          // Avoid infinite loop - mark request as retried
+          if ((originalRequest as any)._retry) {
+            throw error;
+          }
+          (originalRequest as any)._retry = true;
+          
+          logger.info('Token expired, refreshing...');
+          this.token = null;
+          this.tokenExpiry = null;
+          
+          try {
+            const token = await this.authenticate();
+            originalRequest.headers['X-API-Key'] = token;
+            return this.axiosInstance(originalRequest);
+          } catch (authError) {
+            logger.error('Token refresh failed:', authError);
+            throw authError;
+          }
+        }
+
+        logger.error(`API Error: ${error.response?.status} ${error.config?.url}`, {
+          data: error.response?.data,
+          message: error.message
+        });
+        
+        throw error;
+      }
+    );
+  }
+
+  private async authenticate(): Promise<string> {
+    try {
+      const authData: AuthRequest = {
+        cnpj: apiConfig.credentials.cnpj,
+        username: apiConfig.credentials.username,
+        password: apiConfig.credentials.password
+      };
+
+      const response = await this.axiosInstance.post<ApiResponse<AuthResponse>>(
+        '/auth/access-token',
+        authData
+      );
+
+      this.token = response.data.data.token;
+      // Set token expiry to configured hours before actual expiry
+      this.tokenExpiry = new Date(Date.now() + (apiConfig.tokenRefreshHours * 60 * 60 * 1000));
+      
+      logger.info(`Authentication successful, token expires at: ${this.tokenExpiry.toISOString()}`);
+      return this.token;
+    } catch (error) {
+      logger.error('Authentication failed:', error);
+      throw new Error('Failed to authenticate with Locavia API');
+    }
+  }
+
+  private async getValidToken(): Promise<string> {
+    const now = new Date();
+    logger.debug(`Token check - Current time: ${now.toISOString()}, Token expiry: ${this.tokenExpiry?.toISOString()}, Has token: ${!!this.token}`);
+    
+    if (!this.token || !this.tokenExpiry || now >= this.tokenExpiry) {
+      logger.info('Token needs refresh - triggering authentication');
+      return await this.authenticate();
+    }
+    return this.token;
+  }
+
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    return this.executeWithRetry(async () => {
+      const response = await this.axiosInstance.get<ApiResponse<T>>(endpoint, { params });
+      
+      // Handle null responses
+      if (response.data === null) {
+        logger.warn(`Endpoint ${endpoint} returned null response`);
+        // Return empty results structure for endpoints that expect pagination
+        return { results: [] } as unknown as T;
+      }
+      
+      return response.data.data;
+    });
+  }
+
+  async post<T>(endpoint: string, data: any): Promise<T> {
+    return this.executeWithRetry(async () => {
+      const response = await this.axiosInstance.post<ApiResponse<T>>(endpoint, data);
+      return response.data.data;
+    });
+  }
+
+  async patch<T>(endpoint: string, data: any): Promise<T> {
+    return this.executeWithRetry(async () => {
+      const response = await this.axiosInstance.patch<ApiResponse<T>>(endpoint, data);
+      return response.data.data;
+    });
+  }
+
+  async put<T>(endpoint: string, data: any): Promise<T> {
+    return this.executeWithRetry(async () => {
+      const response = await this.axiosInstance.put<ApiResponse<T>>(endpoint, data);
+      return response.data.data;
+    });
+  }
+
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    attempt: number = 1
+  ): Promise<T> {
+    try {
+      // Rate limiting: ensure minimum interval between requests
+      const now = Date.now();
+      const timeSinceLastRequest = now - this.lastRequestTime;
+      if (timeSinceLastRequest < this.minRequestInterval) {
+        const waitTime = this.minRequestInterval - timeSinceLastRequest;
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+      
+      this.lastRequestTime = Date.now();
+      return await operation();
+    } catch (error) {
+      // Handle rate limiting (429) with exponential backoff
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        const retryAfter = error.response.headers['retry-after'];
+        const delay = retryAfter ? parseInt(retryAfter) * 1000 : apiConfig.retryDelay * Math.pow(2, attempt);
+        
+        logger.warn(`Rate limited, waiting ${delay}ms before retry (attempt ${attempt}/${apiConfig.retryAttempts})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Increase minimum interval to avoid future rate limiting
+        this.minRequestInterval = Math.min(this.minRequestInterval * 1.5, 1000);
+        
+        if (attempt < apiConfig.retryAttempts) {
+          return this.executeWithRetry(operation, attempt + 1);
+        }
+      }
+      
+      // Handle other errors with regular retry logic
+      if (attempt < apiConfig.retryAttempts) {
+        const delay = apiConfig.retryDelay * Math.pow(2, attempt - 1);
+        logger.warn(`Request failed, retrying in ${delay}ms (attempt ${attempt}/${apiConfig.retryAttempts})`);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.executeWithRetry(operation, attempt + 1);
+      }
+      
+      throw error;
+    }
+  }
+
+  async *paginate<T>(
+    endpoint: string,
+    pageSize: number = apiConfig.pagination.defaultPageSize,
+    additionalParams?: Record<string, any>
+  ): AsyncGenerator<T[], void, unknown> {
+    // Check if this is a BI endpoint that supports pagination
+    const isBIEndpoint = endpoint.startsWith('/dados');
+    
+    if (isBIEndpoint) {
+      // BI endpoints support pagination with 'pagina' and 'linhas' parameters
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        try {
+          const params = {
+            ...additionalParams,
+            pagina: page,
+            linhas: Math.min(pageSize, apiConfig.pagination.maxPageSize)
+          };
+
+          const response = await this.get<{ results: T[] }>(endpoint, params);
+          
+          // Handle null or invalid responses
+          if (!response || !response.results) {
+            logger.warn(`Endpoint ${endpoint} returned invalid response structure`);
+            hasMore = false;
+            yield [];
+          } else if (response.results.length > 0) {
+            yield response.results;
+            page++;
+            
+            // If we got less than requested, we've reached the end
+            if (response.results.length < pageSize) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        } catch (error) {
+          logger.error(`Pagination error at page ${page} for endpoint ${endpoint}:`, error);
+          throw error;
+        }
+      }
+    } else {
+      // Regular endpoints don't support pagination - fetch all data at once
+      try {
+        const response = await this.get<{ results: T[] }>(endpoint, additionalParams);
+        
+        // Handle null or invalid responses
+        if (!response || !response.results) {
+          logger.warn(`Endpoint ${endpoint} returned invalid response structure`);
+          yield [];
+        } else if (response.results.length > 0) {
+          yield response.results;
+        }
+      } catch (error) {
+        // Handle 404 errors for endpoints that don't exist
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          logger.warn(`Endpoint ${endpoint} not found (404). Returning empty results.`);
+          // Return empty array for non-existent endpoints
+          yield [];
+        } else {
+          logger.error(`Error fetching data from endpoint ${endpoint}:`, error);
+          throw error;
+        }
+      }
+    }
+  }
+}
