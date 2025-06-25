@@ -2,7 +2,7 @@
 // Maps entity names to their correct API endpoints
 
 export const apiEndpoints = {
-  // BI endpoints (these use camelCase naming)
+  // BI endpoints (these use camelCase naming and support pagination)
   dados_veiculos: '/dadosVeiculos',
   dados_clientes: '/dadosClientes',
   
@@ -10,12 +10,12 @@ export const apiEndpoints = {
   clientes: '/clientes',
   condutores: '/condutores',
   contratomaster: '/contratomaster', // This endpoint exists and returns data
-  veiculos: '/veiculos', // Exists but has issues with pagination params
-  reservas: '/reservas', // Exists but has issues with pagination params
+  veiculos: '/veiculos', // Exists but doesn't support pagination params
+  reservas: '/reservas', // Exists but doesn't support pagination params
   
-  // These endpoints don't exist (404) - commenting out for now
-  // contratos: '/contratos',
-  // formas_pagamento: '/formaspagamento',
+  // Corrected endpoints (singular form, no pagination support)
+  contratos: '/contrato', // API uses singular form
+  formas_pagamento: '/formaPagamento', // API uses singular camelCase form
 } as const;
 
 // Reverse mapping for easy lookup

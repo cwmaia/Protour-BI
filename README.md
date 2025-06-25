@@ -157,14 +157,17 @@ Key tables:
 - `/dadosVeiculos` - Vehicle BI data (✅ 3,800 records synced)
 - `/dadosClientes` - Client BI data (✅ 2,848 records synced)
 - `/clientes` - Client records
-- `/condutores` - Driver records
-- `/contratomaster` - Master contracts
-- `/veiculos` - Vehicles (⚠️ pagination issues)
-- `/reservas` - Reservations (⚠️ null response issues)
+- `/condutores` - Driver records (⚠️ rate limiting)
+- `/contratomaster` - Master contracts (⚠️ rate limiting)
+- `/veiculos` - Vehicles (✅ 20 records synced)
+- `/reservas` - Reservations (⚠️ returns null)
+- `/contrato` - Contracts (✅ 20 records synced)
+- `/formaPagamento` - Payment methods (✅ 112 records synced)
 
-### Non-existent Endpoints
-- `/contratos` - Returns 404
-- `/formaspagamento` - Returns 404
+### Fixed Endpoint Issues
+- `/contratos` → `/contrato` (singular)
+- `/formaspagamento` → `/formaPagamento` (camelCase)
+- Regular endpoints don't support pagination parameters
 
 **Note**: The API uses JWT tokens that must be sent in the `X-API-Key` header, not the `Authorization` header.
 

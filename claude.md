@@ -93,4 +93,7 @@ npx ts-node src/scripts/checkDataStatus.ts
 - ✅ bi_dados_clientes: 2,848 records synced
 - ✅ bi_dados_veiculos: 3,800 records synced
 - ✅ veiculos: 20 records synced
-- ⚠️ Some endpoints return 404 or have rate limiting issues
+- ✅ contratos: 20 records synced
+- ✅ formas_pagamento: 112 records synced (was 224, deduped to 112)
+- ⚠️ Some endpoints still have rate limiting issues (condutores, contratomaster)
+- ⚠️ reservas endpoint returns null data

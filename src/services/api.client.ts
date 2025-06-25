@@ -249,6 +249,7 @@ export class ApiClient {
     } else {
       // Regular endpoints don't support pagination - fetch all data at once
       try {
+        // Don't send any pagination parameters for regular endpoints
         const response = await this.get<{ results: T[] }>(endpoint, additionalParams);
         
         // Handle null or invalid responses
@@ -256,7 +257,15 @@ export class ApiClient {
           logger.warn(`Endpoint ${endpoint} returned invalid response structure`);
           yield [];
         } else if (response.results.length > 0) {
-          yield response.results;
+          // For non-paginated endpoints, we need to handle large datasets
+          // Split into chunks to match expected batch processing
+          const totalRecords = response.results.length;
+          logger.info(`Endpoint ${endpoint} returned ${totalRecords} records (non-paginated)`);
+          
+          for (let i = 0; i < totalRecords; i += pageSize) {
+            const batch = response.results.slice(i, i + pageSize);
+            yield batch;
+          }
         }
       } catch (error) {
         // Handle 404 errors for endpoints that don't exist
