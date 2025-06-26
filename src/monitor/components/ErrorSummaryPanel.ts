@@ -9,7 +9,7 @@ export class ErrorSummaryPanel {
     this.box = blessed.box({
       parent,
       label: ' Error Summary ',
-      top: '40%',
+      top: '43%',
       left: '50%',
       width: '50%',
       height: '20%',

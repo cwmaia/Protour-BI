@@ -10,7 +10,7 @@ export class ProgressPanel {
     this.box = blessed.box({
       parent,
       label: ' Progress ',
-      top: 0,
+      top: 3,
       left: '30%',
       width: '70%',
       height: '40%',

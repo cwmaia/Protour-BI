@@ -10,7 +10,7 @@ export class ActivityLog {
     this.box = blessed.box({
       parent,
       label: ' Activity Log ',
-      top: '60%',
+      top: '63%',
       left: 0,
       width: '100%',
       height: '35%',

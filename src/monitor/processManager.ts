@@ -20,7 +20,13 @@ export class ProcessManager extends EventEmitter {
       const child = spawn('npx', ['ts-node', scriptPath, entity], {
         detached: false,
         stdio: ['inherit', 'pipe', 'pipe'],
-        env: { ...process.env }
+        env: { 
+          ...process.env,
+          // Ensure child processes use production settings
+          NODE_ENV: 'production',
+          // Pass token manager flag
+          USE_SHARED_TOKEN: 'true'
+        }
       });
 
       if (!child.pid) {

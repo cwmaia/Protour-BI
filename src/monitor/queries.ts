@@ -1,6 +1,7 @@
 import { getConnection } from '../config/database';
 import { SyncStatus, SyncStatistics } from './types';
 import { RowDataPacket } from 'mysql2';
+import { tokenManager } from '../services/tokenManager';
 
 export async function getSyncStatuses(): Promise<SyncStatus[]> {
   const pool = await getConnection();
@@ -63,13 +64,26 @@ export async function getSyncStatistics(): Promise<SyncStatistics> {
     WHERE sync_status = 'running'
   `);
   
+  // Get token status
+  let tokenValid = false;
+  let tokenExpiresIn = 0;
+  try {
+    const tokenStatus = await tokenManager.getTokenStatus();
+    tokenValid = tokenStatus.isValid;
+    tokenExpiresIn = tokenStatus.hoursUntilExpiry || 0;
+  } catch (error) {
+    // Ignore token errors in monitor
+  }
+  
   return {
     totalOsRecords: osStats[0].total_os || 0,
     syncedOsRecords: osStats[0].os_with_items || 0,
     totalExpenses: parseFloat(expenseStats[0].total_expenses) || 0,
     expectedMonthlyExpenses: 200000,
     apiCallsToday: apiCalls[0].api_calls_today || 0,
-    activeSyncs: activeSyncs[0].active_syncs || 0
+    activeSyncs: activeSyncs[0].active_syncs || 0,
+    tokenValid,
+    tokenExpiresIn
   };
 }
 

@@ -9,7 +9,7 @@ export class StatusPanel {
     this.box = blessed.box({
       parent,
       label: ' Sync Status ',
-      top: 0,
+      top: 3,
       left: 0,
       width: '30%',
       height: '40%',

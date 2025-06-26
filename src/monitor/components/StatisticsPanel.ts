@@ -9,7 +9,7 @@ export class StatisticsPanel {
     this.box = blessed.box({
       parent,
       label: ' Statistics ',
-      top: '40%',
+      top: '43%',
       left: 0,
       width: '50%',
       height: '20%',
@@ -46,6 +46,10 @@ export class StatisticsPanel {
     const expenseColor = expensePercentage < 50 ? '{red-fg}' : 
                         expensePercentage < 80 ? '{yellow-fg}' : '{green-fg}';
 
+    const tokenColor = stats.tokenValid ? '{green-fg}' : '{red-fg}';
+    const tokenStatus = stats.tokenValid ? 
+      `Valid (${stats.tokenExpiresIn?.toFixed(1)}h)` : 'Invalid';
+    
     const content = [
       `Total OS: {bold}${stats.totalOsRecords.toLocaleString()}{/bold} | `,
       `Synced: {bold}${stats.syncedOsRecords.toLocaleString()}{/bold} | `,
@@ -54,9 +58,10 @@ export class StatisticsPanel {
       `Monthly Expenses: ${expenseColor}R$ ${stats.totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}{/} / `,
       `~R$ ${stats.expectedMonthlyExpenses.toLocaleString('pt-BR')} expected`,
       '',
+      `Token: ${tokenColor}${tokenStatus}{/} | `,
       stats.lastRateLimit ? `Last Rate Limit: {yellow-fg}${this.getTimeAgo(stats.lastRateLimit)}{/} | ` : '',
-      `API Calls Today: {bold}${stats.apiCallsToday.toLocaleString()}{/bold} | `,
-      `Active Syncs: {bold}${stats.activeSyncs}{/bold}`
+      `API Calls: {bold}${stats.apiCallsToday}{/bold} | `,
+      `Active: {bold}${stats.activeSyncs}{/bold}`
     ].filter(Boolean).join('');
 
     this.content.setContent(content);

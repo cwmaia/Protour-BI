@@ -19,6 +19,8 @@ export interface SyncStatistics {
   lastRateLimit?: Date;
   apiCallsToday: number;
   activeSyncs: number;
+  tokenValid?: boolean;
+  tokenExpiresIn?: number;
 }
 
 export interface ActivityLogEntry {

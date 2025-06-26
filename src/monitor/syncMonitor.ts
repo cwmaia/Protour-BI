@@ -32,9 +32,13 @@ export class SyncMonitor {
       title: 'Locavia Sync Monitor',
       fullUnicode: true,
       autoPadding: false,
-      warnings: true
+      warnings: true,
+      forceUnicode: true
     });
 
+    // Clear the terminal completely
+    this.screen.alloc();
+    
     // Create main container to fix background bleed
     this.mainContainer = blessed.box({
       parent: this.screen,
@@ -43,14 +47,32 @@ export class SyncMonitor {
       width: '100%',
       height: '100%',
       style: {
-        bg: 'black'
-      }
+        bg: 'black',
+        fg: 'white'
+      },
+      ch: ' ' // Fill with spaces to ensure full coverage
     });
 
     // Initialize process manager
     this.processManager = new ProcessManager();
 
-    // Create UI components with mainContainer as parent
+    // Create title bar
+    blessed.box({
+      parent: this.mainContainer,
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: 3,
+      content: '{center}Locavia Sync Monitor - Real-time Sync Status{/center}',
+      style: {
+        bg: 'blue',
+        fg: 'white',
+        bold: true
+      },
+      tags: true
+    });
+
+    // Create UI components with mainContainer as parent (adjusted for title bar)
     this.statusPanel = new StatusPanel(this.mainContainer);
     this.progressPanel = new ProgressPanel(this.mainContainer);
     this.statisticsPanel = new StatisticsPanel(this.mainContainer);
