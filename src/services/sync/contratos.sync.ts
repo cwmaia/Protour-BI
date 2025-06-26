@@ -67,7 +67,7 @@ export class ContratosSyncService extends BaseSyncService {
             celular: record.celular,
             codigo_contrato_original: record.codigoContratoOriginal,
             codigo_contrato_prox: record.codigoContratoProx,
-            fechado: record.fechado === 'S' ? 1 : 0, // Convert 'S'/'N' to 1/0
+            fechado: record.fechado, // Keep as 'S'/'N' string
             fechamento_nao_realizado_faturamento_master: record.fechamentoNaoRealizadoFaturamentoMaster === 'S' ? 1 : 0 // Convert 'S'/'N' to 1/0
           }));
 

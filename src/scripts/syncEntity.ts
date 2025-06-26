@@ -1,9 +1,13 @@
 import { SyncOrchestrator } from '../services/sync.orchestrator';
 import { closeConnection } from '../config/database';
+import { initializeScript } from './initializeScript';
 import logger from '../utils/logger';
 import chalk from 'chalk';
 
 async function syncEntity(): Promise<void> {
+  // Initialize shared token manager
+  await initializeScript();
+  
   const orchestrator = new SyncOrchestrator();
   
   try {

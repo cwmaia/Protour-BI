@@ -2,6 +2,8 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { apiConfig } from '../config/api';
 import { ApiResponse, ApiError, AuthRequest, AuthResponse } from '../types/api.types';
 import logger from '../utils/logger';
+import { tokenManager } from './tokenManager';
+import { rateLimitManager } from './rateLimitManager';
 
 export class ApiClient {
   private static instance: ApiClient | null = null;
@@ -10,6 +12,7 @@ export class ApiClient {
   private tokenExpiry: Date | null = null;
   private lastRequestTime: number = 0;
   private minRequestInterval: number = 100; // Minimum 100ms between requests
+  private useSharedToken: boolean = true; // Use shared token manager by default
 
   public static getInstance(): ApiClient {
     if (!ApiClient.instance) {
@@ -31,6 +34,11 @@ export class ApiClient {
     // Request interceptor
     this.axiosInstance.interceptors.request.use(
       async (config) => {
+        // Check rate limit before making request
+        if (config.url && !config.url.includes('/auth/access-token')) {
+          await rateLimitManager.waitIfNeeded(config.url);
+        }
+        
         // Only add token for non-auth requests
         if (!config.url?.includes('/auth/access-token')) {
           const token = await this.getValidToken();
@@ -54,6 +62,16 @@ export class ApiClient {
       async (error: AxiosError<ApiError>) => {
         const originalRequest = error.config;
         
+        // Handle rate limiting
+        if (error.response?.status === 429 && originalRequest) {
+          const endpoint = originalRequest.url || '';
+          const retryAfter = error.response.headers['retry-after'];
+          const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
+          
+          await rateLimitManager.markRateLimited(endpoint, waitTime);
+          logger.warn(`Rate limited on ${endpoint}, waiting ${waitTime}ms`);
+        }
+        
         if (error.response?.status === 401 && originalRequest && !originalRequest.url?.includes('/auth/access-token')) {
           // Avoid infinite loop - mark request as retried
           if ((originalRequest as any)._retry) {
@@ -66,7 +84,7 @@ export class ApiClient {
           this.tokenExpiry = null;
           
           try {
-            const token = await this.authenticate();
+            const token = await this.getValidToken();
             originalRequest.headers['X-API-Key'] = token;
             return this.axiosInstance(originalRequest);
           } catch (authError) {
@@ -85,38 +103,26 @@ export class ApiClient {
     );
   }
 
-  private async authenticate(): Promise<string> {
-    try {
-      const authData: AuthRequest = {
-        cnpj: apiConfig.credentials.cnpj,
-        username: apiConfig.credentials.username,
-        password: apiConfig.credentials.password
-      };
-
-      const response = await this.axiosInstance.post<ApiResponse<AuthResponse>>(
-        '/auth/access-token',
-        authData
-      );
-
-      this.token = response.data.data.token;
-      // Set token expiry to configured hours before actual expiry
-      this.tokenExpiry = new Date(Date.now() + (apiConfig.tokenRefreshHours * 60 * 60 * 1000));
-      
-      logger.info(`Authentication successful, token expires at: ${this.tokenExpiry.toISOString()}`);
-      return this.token;
-    } catch (error) {
-      logger.error('Authentication failed:', error);
-      throw new Error('Failed to authenticate with Locavia API');
-    }
-  }
 
   private async getValidToken(): Promise<string> {
+    // Use shared token manager if enabled
+    if (this.useSharedToken) {
+      try {
+        return await tokenManager.getToken();
+      } catch (error) {
+        logger.error('Failed to get token from token manager:', error);
+        // Fall back to instance authentication
+        this.useSharedToken = false;
+      }
+    }
+
+    // Instance-based token management (fallback)
     const now = new Date();
     logger.debug(`Token check - Current time: ${now.toISOString()}, Token expiry: ${this.tokenExpiry?.toISOString()}, Has token: ${!!this.token}`);
     
     if (!this.token || !this.tokenExpiry || now >= this.tokenExpiry) {
       logger.info('Token needs refresh - triggering authentication');
-      return await this.authenticate();
+      return await this.authenticateInternal();
     }
     return this.token;
   }
@@ -199,6 +205,46 @@ export class ApiClient {
       }
       
       throw error;
+    }
+  }
+
+  // Public methods for token manager
+  async authenticate(): Promise<void> {
+    await this.authenticateInternal();
+  }
+
+  getAuthToken(): string | null {
+    return this.token;
+  }
+
+  setAuthToken(token: string): void {
+    this.token = token;
+    // Set expiry to 24 hours from now
+    this.tokenExpiry = new Date(Date.now() + (24 * 60 * 60 * 1000));
+  }
+
+  private async authenticateInternal(): Promise<string> {
+    try {
+      const authData: AuthRequest = {
+        cnpj: apiConfig.credentials.cnpj,
+        username: apiConfig.credentials.username,
+        password: apiConfig.credentials.password
+      };
+
+      const response = await this.axiosInstance.post<ApiResponse<AuthResponse>>(
+        '/auth/access-token',
+        authData
+      );
+
+      this.token = response.data.data.token;
+      // Set token expiry to configured hours before actual expiry
+      this.tokenExpiry = new Date(Date.now() + (apiConfig.tokenRefreshHours * 60 * 60 * 1000));
+      
+      logger.info(`Authentication successful, token expires at: ${this.tokenExpiry.toISOString()}`);
+      return this.token;
+    } catch (error) {
+      logger.error('Authentication failed:', error);
+      throw new Error('Failed to authenticate with Locavia API');
     }
   }
 

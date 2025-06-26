@@ -1,5 +1,7 @@
 import { SyncScheduler } from './services/scheduler';
 import { getConnection, closeConnection } from './config/database';
+import { tokenManager } from './services/tokenManager';
+import { rateLimitManager } from './services/rateLimitManager';
 import logger from './utils/logger';
 import dotenv from 'dotenv';
 
@@ -19,6 +21,16 @@ class Application {
       // Test database connection
       await getConnection();
       logger.info('Database connection established');
+      
+      // Initialize token manager
+      logger.info('Initializing authentication token manager');
+      await tokenManager.initialize();
+      logger.info('Token manager initialized successfully');
+      
+      // Initialize rate limit manager
+      logger.info('Initializing rate limit manager');
+      await rateLimitManager.initialize();
+      logger.info('Rate limit manager initialized successfully');
       
       // Run initial sync if environment variable is set
       if (process.env.RUN_INITIAL_SYNC === 'true') {
@@ -45,6 +57,7 @@ class Application {
       
       try {
         this.scheduler.stop();
+        tokenManager.stopAutoRefresh();
         await closeConnection();
         logger.info('Application shut down successfully');
         process.exit(0);

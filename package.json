@@ -25,7 +25,8 @@
     "sync:os": "ts-node src/scripts/syncOs.ts",
     "sync:os-test": "ts-node src/scripts/testOsPagination.ts",
     "sync:os-complete": "ts-node src/scripts/syncOsComplete.ts",
-    "monitor": "ts-node src/monitor/syncMonitor.ts"
+    "monitor": "ts-node src/monitor/syncMonitor.ts",
+    "db:fix-schema": "ts-node src/scripts/fixDatabaseSchema.ts"
   },
   "keywords": [],
   "author": "",
