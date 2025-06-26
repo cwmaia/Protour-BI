@@ -4,11 +4,13 @@ import axios from 'axios';
 jest.mock('axios');
 
 describe('ApiClient', () => {
-  let apiClient: ApiClient;
   const mockedAxios = axios as jest.Mocked<typeof axios>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the singleton instance
+    (ApiClient as any).instance = null;
+    
     mockedAxios.create.mockReturnValue({
       get: jest.fn(),
       post: jest.fn(),
@@ -19,12 +21,12 @@ describe('ApiClient', () => {
         response: { use: jest.fn() }
       }
     } as any);
-    
-    apiClient = new ApiClient();
   });
 
-  describe('constructor', () => {
+  describe('getInstance', () => {
     it('should create axios instance with correct config', () => {
+      ApiClient.getInstance();
+      
       expect(mockedAxios.create).toHaveBeenCalledWith({
         baseURL: expect.stringContaining('apilocavia.infosistemas.com.br'),
         timeout: expect.any(Number),
@@ -33,6 +35,14 @@ describe('ApiClient', () => {
           'Content-Type': 'application/json'
         }
       });
+    });
+    
+    it('should return the same instance on multiple calls', () => {
+      const instance1 = ApiClient.getInstance();
+      const instance2 = ApiClient.getInstance();
+      
+      expect(instance1).toBe(instance2);
+      expect(mockedAxios.create).toHaveBeenCalledTimes(1);
     });
   });
 

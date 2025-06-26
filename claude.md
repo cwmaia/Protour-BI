@@ -45,6 +45,9 @@ npm run sync:batched      # Sync with rate limiting
 npm run sync:entity [name] # Sync specific entity
 npm run sync:status       # Check sync status
 npm run sync:test-endpoints # Test API endpoints
+npm run sync:os           # Sync OS (Service Orders) data
+npm run sync:os-test      # Test OS pagination capabilities
+npm run sync:os-complete  # Sync ALL OS records with progress tracking
 
 # Check data status
 npx ts-node src/scripts/checkDataStatus.ts
@@ -61,6 +64,28 @@ npx ts-node src/scripts/checkDataStatus.ts
 - Purpose: BI data warehouse
 - Design: Optimized for analytical queries
 
+## Sync Monitor Dashboard (Next Session Implementation)
+
+### Purpose
+Real-time monitoring and control of sync processes with visibility into:
+- Active sync status for each entity
+- Progress bars with record counts
+- Total expenses tracked vs expected (~R$ 200,000/month)
+- Rate limiting and error tracking
+- Interactive controls to start/stop syncs
+
+### Commands (To Be Implemented)
+```bash
+npm run monitor     # Launch interactive sync dashboard
+```
+
+### Dashboard Features
+- Number key shortcuts (1-7) for sync control
+- Real-time progress tracking
+- Activity log with rate limit notifications
+- Expense tracking vs expectations
+- Background process management
+
 ## Important Notes
 
 ### Authentication
@@ -72,6 +97,8 @@ npx ts-node src/scripts/checkDataStatus.ts
 - BI endpoints (with pagination support):
   - `/dadosVeiculos` - Vehicle BI data
   - `/dadosClientes` - Client BI data
+- OS endpoint (with pagination support):
+  - `/os` - Service orders (supports pagina/linhas params)
 - Regular endpoints (limited or no pagination):
   - `/clientes` - Client records
   - `/condutores` - Driver records
@@ -85,8 +112,9 @@ npx ts-node src/scripts/checkDataStatus.ts
 - Use `npm run sync:batched` for controlled syncing
 
 ### Database Tables
-- BI tables: `bi_dados_veiculos`, `bi_dados_clientes`
+- BI tables: `bi_dados_veiculos`, `bi_dados_clientes`, `bi_vehicle_expenses`
 - Regular tables: `clientes`, `condutores`, `veiculos`, `contratos`, `contrato_master`, `reservas`, `formas_pagamento`
+- OS tables: `os`, `os_itens` (vehicle service orders and expenses)
 - Metadata tables: `sync_metadata`, `sync_audit_log`
 
 ### Current Sync Status
@@ -95,5 +123,10 @@ npx ts-node src/scripts/checkDataStatus.ts
 - ✅ veiculos: 20 records synced
 - ✅ contratos: 20 records synced
 - ✅ formas_pagamento: 112 records synced (was 224, deduped to 112)
+- ⚠️ os: 100 records fetched (out of potentially thousands)
+- ❌ CRITICAL: Only tracking R$ 5,476 in expenses vs expected ~R$ 200,000/month
+- ✅ FIXED: OS endpoint now properly supports pagination
+- ✅ NEW: Added sync:os-complete command to fetch ALL OS records
 - ⚠️ Some endpoints still have rate limiting issues (condutores, contratomaster)
 - ⚠️ reservas endpoint returns null data
+- ⚠️ OS detail fetching requires careful rate limiting (500ms between requests)

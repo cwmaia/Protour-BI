@@ -17,7 +17,7 @@ async function testAllSyncs() {
     
     // Run sync for all entities
     console.log('=== Running Full Sync ===\n');
-    const results = await orchestrator.syncAll(true);
+    await orchestrator.syncAll(true);
     
     console.log('\n=== Database Record Counts ===');
     const pool = await getConnection();

@@ -7,6 +7,7 @@ import { ContratosSyncService } from './sync/contratos.sync';
 import { ContratoMasterSyncService } from './sync/contratoMaster.sync';
 import { ReservasSyncService } from './sync/reservas.sync';
 import { FormasPagamentoSyncService } from './sync/formasPagamento.sync';
+import { OsSyncService } from './sync/os.sync';
 import { SyncResult } from './sync/base.sync';
 import logger from '../utils/logger';
 import { getConnection } from '../config/database';
@@ -28,6 +29,7 @@ export class SyncOrchestrator {
     this.syncServices.set('contratos', new ContratosSyncService());
     this.syncServices.set('contratomaster', new ContratoMasterSyncService());
     this.syncServices.set('reservas', new ReservasSyncService());
+    this.syncServices.set('os', new OsSyncService());
   }
 
   async estimateTotalRecords(): Promise<Map<string, number>> {
@@ -43,6 +45,7 @@ export class SyncOrchestrator {
     estimates.set('contratos', 1500);
     estimates.set('contratomaster', 200);
     estimates.set('reservas', 400);
+    estimates.set('os', 1000);
     
     return estimates;
   }

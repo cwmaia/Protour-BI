@@ -207,10 +207,11 @@ export class ApiClient {
     pageSize: number = apiConfig.pagination.defaultPageSize,
     additionalParams?: Record<string, any>
   ): AsyncGenerator<T[], void, unknown> {
-    // Check if this is a BI endpoint that supports pagination
-    const isBIEndpoint = endpoint.startsWith('/dados');
+    // Check if this endpoint supports pagination
+    // BI endpoints (/dados*) and OS endpoint support pagination with 'pagina' and 'linhas' parameters
+    const supportsPagination = endpoint.startsWith('/dados') || endpoint === '/os';
     
-    if (isBIEndpoint) {
+    if (supportsPagination) {
       // BI endpoints support pagination with 'pagina' and 'linhas' parameters
       let page = 1;
       let hasMore = true;

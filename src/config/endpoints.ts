@@ -16,6 +16,9 @@ export const apiEndpoints = {
   // Corrected endpoints (singular form, no pagination support)
   contratos: '/contrato', // API uses singular form
   formas_pagamento: '/formaPagamento', // API uses singular camelCase form
+  
+  // OS endpoint (supports pagination)
+  os: '/os', // Service orders endpoint with pagination support
 } as const;
 
 // Reverse mapping for easy lookup

@@ -309,3 +309,39 @@ export interface FormaPagamento {
   taxaJuros?: number;
   descontoPercentual?: number;
 }
+
+// OS (Service Order) Types
+export interface OS {
+  codigoOS: number;
+  codigoEmpresa: number;
+  codigoUnidade: number;
+  dataAbertura?: string;
+  placa?: string;
+  codigoFornecedor?: number;
+  numeroDocumento?: string;
+  valorTotal?: number;
+  quantidadeItens?: number;
+}
+
+export interface OSItem {
+  numeroItem: number;
+  valorItem?: number;
+  quantidade?: number;
+  valorTotalItem?: number;
+}
+
+export interface OSDetail extends OS {
+  itens?: OSItem[];
+}
+
+export interface VehicleExpense {
+  placa: string;
+  codigoMVA?: number;
+  totalExpenses: number;
+  expenseCount: number;
+  firstExpenseDate?: string;
+  lastExpenseDate?: string;
+  avgExpenseValue?: number;
+  maxExpenseValue?: number;
+  totalItems: number;
+}
