@@ -1,0 +1,434 @@
+{
+  "timestamp": "2025-06-26T03:03:01.836Z",
+  "statistics": {
+    "totalOsRecords": 100,
+    "syncedOsRecords": "86",
+    "totalExpenses": 28257.22,
+    "expectedMonthlyExpenses": 200000,
+    "apiCallsToday": 22,
+    "activeSyncs": 6,
+    "tokenValid": true,
+    "tokenExpiresIn": 23.84782388888889,
+    "expensePercentage": 14.12861
+  },
+  "syncStatuses": [
+    {
+      "entity": "clientes",
+      "status": "stopped",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-25T18:33:03.000Z",
+      "error": null
+    },
+    {
+      "entity": "condutores",
+      "status": "error",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-25T18:33:06.000Z",
+      "error": "Request failed with status code 429"
+    },
+    {
+      "entity": "contratomaster",
+      "status": "error",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-25T18:33:06.000Z",
+      "error": "Request failed with status code 429"
+    },
+    {
+      "entity": "contratos",
+      "status": "running",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-26T00:02:20.000Z",
+      "error": null
+    },
+    {
+      "entity": "dados_clientes",
+      "status": "running",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-26T00:02:14.000Z",
+      "error": null
+    },
+    {
+      "entity": "dados_veiculos",
+      "status": "running",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-26T00:02:12.000Z",
+      "error": null
+    },
+    {
+      "entity": "formas_pagamento",
+      "status": "running",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-26T00:02:22.000Z",
+      "error": null
+    },
+    {
+      "entity": "os",
+      "status": "running",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-26T00:02:16.000Z",
+      "error": null
+    },
+    {
+      "entity": "reservas",
+      "status": "error",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-25T18:33:03.000Z",
+      "error": "Cannot read properties of null (reading 'results')"
+    },
+    {
+      "entity": "veiculos",
+      "status": "running",
+      "progress": 0,
+      "recordsTotal": 0,
+      "recordsSynced": 0,
+      "lastSyncTime": "2025-06-26T00:02:18.000Z",
+      "error": null
+    }
+  ],
+  "recentActivity": [
+    {
+      "timestamp": "2025-06-26T03:02:23.000Z",
+      "entity": "formas_pagamento",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T03:02:21.000Z",
+      "entity": "contratos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T03:02:19.000Z",
+      "entity": "veiculos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T03:02:17.000Z",
+      "entity": "os",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T03:02:15.000Z",
+      "entity": "dados_clientes",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T03:02:13.000Z",
+      "entity": "dados_veiculos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T03:00:55.000Z",
+      "entity": "os",
+      "level": "error",
+      "message": "Request failed with status code 500"
+    },
+    {
+      "timestamp": "2025-06-26T03:00:55.000Z",
+      "entity": "os",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T02:58:10.000Z",
+      "entity": "formas_pagamento",
+      "level": "error",
+      "message": "Request failed with status code 500"
+    },
+    {
+      "timestamp": "2025-06-26T02:58:10.000Z",
+      "entity": "formas_pagamento",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T01:47:18.000Z",
+      "entity": "formas_pagamento",
+      "level": "error",
+      "message": "Failed to authenticate with Locavia API"
+    },
+    {
+      "timestamp": "2025-06-26T01:47:18.000Z",
+      "entity": "formas_pagamento",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T01:47:16.000Z",
+      "entity": "contratos",
+      "level": "error",
+      "message": "Failed to authenticate with Locavia API"
+    },
+    {
+      "timestamp": "2025-06-26T01:47:16.000Z",
+      "entity": "contratos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T01:47:14.000Z",
+      "entity": "veiculos",
+      "level": "error",
+      "message": "Failed to authenticate with Locavia API"
+    },
+    {
+      "timestamp": "2025-06-26T01:47:14.000Z",
+      "entity": "veiculos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T01:47:12.000Z",
+      "entity": "os",
+      "level": "error",
+      "message": "Failed to authenticate with Locavia API"
+    },
+    {
+      "timestamp": "2025-06-26T01:47:12.000Z",
+      "entity": "os",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T01:47:10.000Z",
+      "entity": "dados_clientes",
+      "level": "info",
+      "message": "full_sync completed in 63s"
+    },
+    {
+      "timestamp": "2025-06-26T01:47:10.000Z",
+      "entity": "dados_clientes",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-26T01:47:08.000Z",
+      "entity": "dados_veiculos",
+      "level": "info",
+      "message": "full_sync completed in 128s"
+    },
+    {
+      "timestamp": "2025-06-26T01:47:08.000Z",
+      "entity": "dados_veiculos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T22:48:28.000Z",
+      "entity": "os",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T22:08:39.000Z",
+      "entity": "contratos",
+      "level": "info",
+      "message": "full_sync completed in 1s"
+    },
+    {
+      "timestamp": "2025-06-25T22:08:39.000Z",
+      "entity": "contratos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T22:08:39.000Z",
+      "entity": "formas_pagamento",
+      "level": "info",
+      "message": "full_sync completed in 0s"
+    },
+    {
+      "timestamp": "2025-06-25T22:08:39.000Z",
+      "entity": "formas_pagamento",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T22:07:52.000Z",
+      "entity": "contratos",
+      "level": "error",
+      "message": "Incorrect integer value: 'S' for column 'fechado' at row 1"
+    },
+    {
+      "timestamp": "2025-06-25T22:07:52.000Z",
+      "entity": "contratos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T22:07:51.000Z",
+      "entity": "formas_pagamento",
+      "level": "info",
+      "message": "full_sync completed in 1s"
+    },
+    {
+      "timestamp": "2025-06-25T22:07:51.000Z",
+      "entity": "formas_pagamento",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:52:12.000Z",
+      "entity": "dados_clientes",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:42:36.000Z",
+      "entity": "dados_veiculos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "contratomaster",
+      "level": "error",
+      "message": "Request failed with status code 429"
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "contratos",
+      "level": "info",
+      "message": "full_sync completed in 3s"
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "formas_pagamento",
+      "level": "info",
+      "message": "full_sync completed in 3s"
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "condutores",
+      "level": "error",
+      "message": "Request failed with status code 429"
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "veiculos",
+      "level": "info",
+      "message": "full_sync completed in 0s"
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "reservas",
+      "level": "error",
+      "message": "Cannot read properties of null (reading 'results')"
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "clientes",
+      "level": "info",
+      "message": "full_sync completed in 0s"
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "veiculos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "contratomaster",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "reservas",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "contratos",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "condutores",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "formas_pagamento",
+      "level": "warning",
+      "message": "full_sync started "
+    },
+    {
+      "timestamp": "2025-06-25T21:33:03.000Z",
+      "entity": "clientes",
+      "level": "warning",
+      "message": "full_sync started "
+    }
+  ],
+  "runningProcesses": [
+    {
+      "entity": "os",
+      "pid": 21759,
+      "startTime": "2025-06-26T03:02:14.235Z",
+      "status": "running"
+    },
+    {
+      "entity": "dados_veiculos",
+      "pid": 21711,
+      "startTime": "2025-06-26T03:02:10.228Z",
+      "status": "running"
+    },
+    {
+      "entity": "dados_clientes",
+      "pid": 21735,
+      "startTime": "2025-06-26T03:02:12.232Z",
+      "status": "running"
+    },
+    {
+      "entity": "veiculos",
+      "pid": 21783,
+      "startTime": "2025-06-26T03:02:16.238Z",
+      "status": "running"
+    },
+    {
+      "entity": "contratos",
+      "pid": 21807,
+      "startTime": "2025-06-26T03:02:18.241Z",
+      "status": "running"
+    },
+    {
+      "entity": "formas_pagamento",
+      "pid": 21836,
+      "startTime": "2025-06-26T03:02:20.244Z",
+      "status": "running"
+    }
+  ],
+  "summary": {
+    "totalEntities": 10,
+    "runningEntities": 6,
+    "errorEntities": 3,
+    "completedEntities": 1
+  }
+}

@@ -25,7 +25,12 @@
     "sync:os": "ts-node src/scripts/syncOs.ts",
     "sync:os-test": "ts-node src/scripts/testOsPagination.ts",
     "sync:os-complete": "ts-node src/scripts/syncOsComplete.ts",
-    "monitor": "ts-node src/monitor/syncMonitor.ts",
+    "sync:os-optimized": "ts-node src/scripts/syncOsOptimized.ts",
+    "sync:os-incremental": "ts-node src/scripts/syncOsIncremental.ts",
+    "db:create-os-tables": "ts-node src/scripts/createOsSyncTables.ts",
+    "monitor": "LOG_SILENT=true LOG_FILE_ONLY=true NODE_ENV=production ts-node src/monitor/syncMonitor.ts",
+    "check:api-health": "ts-node src/scripts/testApiHealth.ts",
+    "check:os-status": "ts-node src/scripts/checkOsStatus.ts",
     "db:fix-schema": "ts-node src/scripts/fixDatabaseSchema.ts"
   },
   "keywords": [],

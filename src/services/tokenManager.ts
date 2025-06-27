@@ -11,11 +11,11 @@ interface TokenInfo {
 
 export class TokenManager {
   private static instance: TokenManager;
-  private apiClient: ApiClient;
+  private apiClient: ApiClient | null = null;
   private tokenRefreshInterval: NodeJS.Timeout | null = null;
   
   private constructor() {
-    this.apiClient = ApiClient.getInstance();
+    // Don't initialize ApiClient here to avoid circular dependency
   }
 
   static getInstance(): TokenManager {
@@ -23,6 +23,18 @@ export class TokenManager {
       TokenManager.instance = new TokenManager();
     }
     return TokenManager.instance;
+  }
+
+  /**
+   * Get ApiClient instance lazily to avoid circular dependency
+   */
+  private getApiClient(): ApiClient {
+    if (!this.apiClient) {
+      // Import dynamically to avoid circular dependency issues
+      const { ApiClient } = require('./api.client');
+      this.apiClient = ApiClient.getInstance();
+    }
+    return this.apiClient as ApiClient;
   }
 
   /**
@@ -35,7 +47,7 @@ export class TokenManager {
       
       if (existingToken && existingToken.isValid) {
         logger.info('Using existing valid token from database');
-        this.apiClient.setAuthToken(existingToken.token);
+        this.getApiClient().setAuthToken(existingToken.token);
       } else {
         logger.info('Obtaining new authentication token');
         await this.refreshToken();
@@ -75,8 +87,8 @@ export class TokenManager {
       logger.info('Refreshing authentication token');
       
       // Authenticate with API
-      await this.apiClient.authenticate();
-      const token = this.apiClient.getAuthToken();
+      await this.getApiClient().authenticate();
+      const token = this.getApiClient().getAuthToken();
       
       if (!token) {
         throw new Error('No token received from authentication');

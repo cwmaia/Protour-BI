@@ -7,7 +7,7 @@ import { ContratosSyncService } from './sync/contratos.sync';
 import { ContratoMasterSyncService } from './sync/contratoMaster.sync';
 import { ReservasSyncService } from './sync/reservas.sync';
 import { FormasPagamentoSyncService } from './sync/formasPagamento.sync';
-import { OsSyncService } from './sync/os.sync';
+import { IncrementalOsSyncService } from './sync/os.sync.incremental';
 import { SyncResult } from './sync/base.sync';
 import logger from '../utils/logger';
 import { getConnection } from '../config/database';
@@ -29,7 +29,7 @@ export class SyncOrchestrator {
     this.syncServices.set('contratos', new ContratosSyncService());
     this.syncServices.set('contratomaster', new ContratoMasterSyncService());
     this.syncServices.set('reservas', new ReservasSyncService());
-    this.syncServices.set('os', new OsSyncService());
+    this.syncServices.set('os', new IncrementalOsSyncService());
   }
 
   async estimateTotalRecords(): Promise<Map<string, number>> {
@@ -87,7 +87,17 @@ export class SyncOrchestrator {
           return result;
         };
         
-        const result = await service.sync();
+        // Special handling for OS sync which needs options
+        let result: SyncResult;
+        if (entityName === 'os' && service instanceof IncrementalOsSyncService) {
+          result = await service.sync({ 
+            mode: 'incremental', 
+            fetchDetails: true,
+            showProgress: false // We handle progress ourselves
+          });
+        } else {
+          result = await service.sync();
+        }
         results.push(result);
         
         if (this.progressBar) {
@@ -178,7 +188,17 @@ export class SyncOrchestrator {
         return result;
       };
       
-      const result = await service.sync();
+      // Special handling for OS sync which needs options
+      let result: SyncResult;
+      if (entityName === 'os' && service instanceof IncrementalOsSyncService) {
+        result = await service.sync({ 
+          mode: 'incremental', 
+          fetchDetails: true,
+          showProgress: false // We handle progress ourselves
+        });
+      } else {
+        result = await service.sync();
+      }
       
       if (this.progressBar) {
         if (result.success) {
@@ -192,6 +212,15 @@ export class SyncOrchestrator {
       service.executeBatchInsert = originalExecuteBatch;
       
       return result;
+    }
+    
+    // Special handling for OS sync which needs options
+    if (entityName === 'os' && service instanceof IncrementalOsSyncService) {
+      return await service.sync({ 
+        mode: 'incremental', 
+        fetchDetails: true,
+        showProgress: false
+      });
     }
     
     return await service.sync();

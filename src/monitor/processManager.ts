@@ -24,6 +24,9 @@ export class ProcessManager extends EventEmitter {
           ...process.env,
           // Ensure child processes use production settings
           NODE_ENV: 'production',
+          // Suppress console output from child processes
+          LOG_SILENT: 'true',
+          LOG_FILE_ONLY: 'true',
           // Pass token manager flag
           USE_SHARED_TOKEN: 'true'
         }

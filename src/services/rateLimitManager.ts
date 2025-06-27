@@ -179,7 +179,7 @@ export class RateLimitManager {
        is_limited = VALUES(is_limited),
        reset_time = VALUES(reset_time),
        updated_at = CURRENT_TIMESTAMP`,
-      [endpoint, requestTime, requestCount, isLimited, resetTime]
+      [endpoint, requestTime, requestCount, isLimited, resetTime || null]
     );
   }
 

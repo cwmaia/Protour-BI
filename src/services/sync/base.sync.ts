@@ -8,6 +8,7 @@ export interface SyncResult {
   success: boolean;
   error?: string;
   duration: number;
+  details?: any;
 }
 
 export abstract class BaseSyncService {
