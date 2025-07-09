@@ -15,6 +15,7 @@ import { MultiProgressBar } from '../utils/progressBar';
 export class SyncOrchestrator {
   private syncServices: Map<string, any> = new Map();
   private progressBar: MultiProgressBar | null = null;
+  private isRunning: boolean = false;
 
   constructor() {
     // Register all sync services - BI tables first (priority)
@@ -160,71 +161,6 @@ export class SyncOrchestrator {
     return results;
   }
 
-  async syncEntity(entityName: string, showProgress: boolean = true): Promise<SyncResult> {
-    const service = this.syncServices.get(entityName);
-    
-    if (!service) {
-      throw new Error(`No sync service registered for entity: ${entityName}`);
-    }
-    
-    if (showProgress) {
-      this.progressBar = new MultiProgressBar();
-      const estimates = await this.estimateTotalRecords();
-      this.progressBar.addBar(entityName, estimates.get(entityName) || 1000);
-      this.progressBar.update(entityName, 0, 'running');
-      
-      // Track progress
-      const originalExecuteBatch = service.executeBatchInsert;
-      let recordsProcessed = 0;
-      
-      service.executeBatchInsert = async (...args: any[]) => {
-        const result = await originalExecuteBatch.apply(service, args);
-        recordsProcessed += result;
-        
-        if (this.progressBar) {
-          this.progressBar.update(entityName, recordsProcessed, 'running');
-        }
-        
-        return result;
-      };
-      
-      // Special handling for OS sync which needs options
-      let result: SyncResult;
-      if (entityName === 'os' && service instanceof IncrementalOsSyncService) {
-        result = await service.sync({ 
-          mode: 'incremental', 
-          fetchDetails: true,
-          showProgress: false // We handle progress ourselves
-        });
-      } else {
-        result = await service.sync();
-      }
-      
-      if (this.progressBar) {
-        if (result.success) {
-          this.progressBar.complete(entityName);
-        } else {
-          this.progressBar.error(entityName, result.error || 'Unknown error');
-        }
-      }
-      
-      // Restore original method
-      service.executeBatchInsert = originalExecuteBatch;
-      
-      return result;
-    }
-    
-    // Special handling for OS sync which needs options
-    if (entityName === 'os' && service instanceof IncrementalOsSyncService) {
-      return await service.sync({ 
-        mode: 'incremental', 
-        fetchDetails: true,
-        showProgress: false
-      });
-    }
-    
-    return await service.sync();
-  }
 
   async getSyncStatus(): Promise<any[]> {
     const pool = await getConnection();
@@ -270,5 +206,72 @@ export class SyncOrchestrator {
     );
     
     return rows as any[];
+  }
+
+  async syncEntity(entityName: string, progressCallback?: (current: number, total: number) => void): Promise<SyncResult> {
+    const service = this.syncServices.get(entityName.toLowerCase().replace('bi_', ''));
+    
+    if (!service) {
+      throw new Error(`No sync service registered for entity: ${entityName}`);
+    }
+    
+    // Track progress if callback provided
+    if (progressCallback) {
+      const originalExecuteBatch = service.executeBatchInsert;
+      let recordsProcessed = 0;
+      
+      service.executeBatchInsert = async (...args: any[]) => {
+        const result = await originalExecuteBatch.apply(service, args);
+        recordsProcessed += result;
+        
+        // Estimate total based on the entity
+        const estimates = await this.estimateTotalRecords();
+        const estimatedTotal = estimates.get(entityName.toLowerCase().replace('bi_', '')) || 1000;
+        
+        progressCallback(recordsProcessed, Math.max(recordsProcessed, estimatedTotal));
+        
+        return result;
+      };
+      
+      try {
+        // Special handling for OS sync which needs options
+        let result: SyncResult;
+        if (entityName === 'os' && service instanceof IncrementalOsSyncService) {
+          result = await service.sync({ 
+            mode: 'incremental', 
+            fetchDetails: true,
+            showProgress: false
+          });
+        } else {
+          result = await service.sync();
+        }
+        
+        // Final callback with actual total
+        if (result.success) {
+          progressCallback(result.recordsSynced, result.recordsSynced);
+        }
+        
+        return result;
+      } finally {
+        // Restore original method
+        service.executeBatchInsert = originalExecuteBatch;
+      }
+    }
+    
+    // No progress tracking
+    if (entityName === 'os' && service instanceof IncrementalOsSyncService) {
+      return await service.sync({ 
+        mode: 'incremental', 
+        fetchDetails: true,
+        showProgress: false
+      });
+    }
+    
+    return await service.sync();
+  }
+
+  async stopSync(): Promise<void> {
+    this.isRunning = false;
+    logger.info('Sync stop requested');
   }
 }
