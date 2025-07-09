@@ -33,7 +33,9 @@
     "check:os-status": "ts-node src/scripts/checkOsStatus.ts",
     "db:fix-schema": "ts-node src/scripts/fixDatabaseSchema.ts",
     "api:start": "ts-node src/scripts/startApiServer.ts",
-    "api:dev": "nodemon --exec ts-node src/scripts/startApiServer.ts"
+    "api:dev": "nodemon --exec ts-node src/scripts/startApiServer.ts",
+    "api:test": "ts-node src/scripts/testSyncApi.ts",
+    "api:test:full": "ts-node src/scripts/testApiIntegration.ts"
   },
   "keywords": [],
   "author": "",
@@ -69,6 +71,7 @@
     "eslint": "^9.29.0",
     "jest": "^30.0.3",
     "nodemon": "^3.1.10",
+    "socket.io-client": "^4.7.5",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2"
   }
