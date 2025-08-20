@@ -83,7 +83,7 @@ export class DadosClientesSyncService extends BaseSyncService {
           'bi_dados_clientes',
           columns,
           mappedRecords,
-          false // Don't update on duplicate, append new records
+          true // Use UPSERT: Update on duplicate key
         );
 
         totalRecords += inserted;
@@ -124,7 +124,7 @@ export class DadosClientesSyncService extends BaseSyncService {
           'bi_dados_clientes',
           columns,
           mappedRecords,
-          false
+          true // Use UPSERT: Update on duplicate key
         );
 
         totalRecords += inserted;

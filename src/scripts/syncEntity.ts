@@ -34,7 +34,9 @@ async function syncEntity(): Promise<void> {
     console.log(chalk.bold.cyan(`\n=== Syncing ${entityName} ===\n`));
     
     const showProgress = !process.argv.includes('--no-progress');
-    const result = await orchestrator.syncEntity(entityName, showProgress);
+    const result = await orchestrator.syncEntity(entityName, showProgress ? (current, total) => {
+      console.log(`Progress: ${current}/${total}`);
+    } : undefined);
     
     // Display result
     console.log('\n' + chalk.bold('=== Sync Result ==='));

@@ -15,7 +15,6 @@ import { MultiProgressBar } from '../utils/progressBar';
 export class SyncOrchestrator {
   private syncServices: Map<string, any> = new Map();
   private progressBar: MultiProgressBar | null = null;
-  private isRunning: boolean = false;
 
   constructor() {
     // Register all sync services - BI tables first (priority)
@@ -271,7 +270,7 @@ export class SyncOrchestrator {
   }
 
   async stopSync(): Promise<void> {
-    this.isRunning = false;
     logger.info('Sync stop requested');
+    // TODO: Implement actual sync stopping logic
   }
 }

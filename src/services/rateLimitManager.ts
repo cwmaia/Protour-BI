@@ -12,7 +12,7 @@ interface RateLimitInfo {
 
 export class RateLimitManager {
   private static instance: RateLimitManager;
-  private minRequestInterval: number = 100; // Base minimum interval between requests
+  private minRequestInterval: number = 2500; // Base minimum interval between requests (2.5s for OS sync safety)
   private rateLimitWindow: number = 60000; // 1 minute window
   private maxRequestsPerWindow: number = 100; // Max requests per minute
   
@@ -187,9 +187,9 @@ export class RateLimitManager {
    * Adjust minimum interval based on rate limit responses
    */
   private adjustMinInterval(waitTimeMs: number): void {
-    // Increase interval by 10% of wait time, max 1000ms
-    const increase = Math.min(waitTimeMs * 0.1, 1000);
-    this.minRequestInterval = Math.min(this.minRequestInterval + increase, 1000);
+    // Increase interval by 10% of wait time, max 2500ms for OS sync safety
+    const increase = Math.min(waitTimeMs * 0.1, 2500);
+    this.minRequestInterval = Math.min(this.minRequestInterval + increase, 2500);
     logger.info(`Adjusted minimum request interval to ${this.minRequestInterval}ms`);
   }
 

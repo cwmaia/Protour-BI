@@ -24,6 +24,9 @@ async function countTotalOsRecords(): Promise<number> {
     }
     
     page++;
+    
+    // Rate limiting: 2.5 seconds between API calls during counting
+    await new Promise(resolve => setTimeout(resolve, 2500));
   }
   
   return totalCount;
@@ -66,8 +69,8 @@ async function syncOsComplete() {
     
     // Ask for confirmation
     console.log(chalk.yellow('This will sync ALL OS records with their details.'));
-    console.log(chalk.yellow('Due to rate limiting, this may take considerable time.'));
-    console.log(chalk.yellow('Estimated time: ~' + Math.ceil(totalRecords * 0.5 / 60) + ' minutes'));
+    console.log(chalk.yellow('Due to rate limiting (2.5s between calls), this may take considerable time.'));
+    console.log(chalk.yellow('Estimated time: ~' + Math.ceil(totalRecords * 2.5 / 60) + ' minutes'));
     
     // Create progress bar
     const progressBar = new cliProgress.SingleBar({
@@ -149,7 +152,8 @@ async function syncOsComplete() {
                 quantidade_itens: quantidadeItens
               });
 
-              await new Promise(resolve => setTimeout(resolve, 500));
+              // Rate limiting: 2.5 seconds between API calls to avoid 429 errors
+              await new Promise(resolve => setTimeout(resolve, 2500));
 
             } catch (error) {
               logger.error(`Failed to fetch details for OS ${os.codigoOS}:`, error);
@@ -226,18 +230,66 @@ async function syncOsComplete() {
       console.log(chalk.green(`Records synced: ${result.recordsSynced}`));
       console.log(chalk.green(`Duration: ${(result.duration / 1000 / 60).toFixed(2)} minutes`));
       
-      // Check new expense total
+      // Check new database status and expenses
+      const [newOsCount] = await pool.execute('SELECT COUNT(*) as count FROM os');
+      const newDbCount = (newOsCount as any)[0].count;
+      
+      const [newItemCount] = await pool.execute('SELECT COUNT(*) as count FROM os_itens');
+      const newItemDbCount = (newItemCount as any)[0].count;
+      
       const [newExpenseResult] = await pool.execute(`
-        SELECT SUM(oi.valor_total_item) as total_expenses
+        SELECT 
+          SUM(oi.valor_total_item) as total_expenses,
+          COUNT(DISTINCT oi.codigo_os) as os_with_expenses,
+          AVG(oi.valor_total_item) as avg_expense_per_item
         FROM os_itens oi
       `);
-      const newExpenses = (newExpenseResult as any)[0].total_expenses || 0;
+      const expenseData = (newExpenseResult as any)[0];
+      const newExpenses = expenseData.total_expenses || 0;
+      const osWithExpenses = expenseData.os_with_expenses || 0;
+      const avgExpensePerItem = expenseData.avg_expense_per_item || 0;
       
-      console.log(chalk.cyan(`\nNew total expenses: R$ ${newExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`));
-      console.log(chalk.cyan(`Expense increase: R$ ${(newExpenses - currentExpenses).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`));
+      // Generate sync report
+      console.log(chalk.bold.cyan('\n=== SYNC RESULTS REPORT ==='));
+      
+      console.log(chalk.bold('\n📊 Database Status:'));
+      console.log(chalk.white(`  • OS Records: ${currentDbCount} → ${newDbCount} (${newDbCount > currentDbCount ? '+' : ''}${newDbCount - currentDbCount})`));
+      console.log(chalk.white(`  • OS Items: ${newItemDbCount} records`));
+      console.log(chalk.white(`  • OS with expenses: ${osWithExpenses}`));
+      
+      console.log(chalk.bold('\n💰 Financial Metrics:'));
+      console.log(chalk.white(`  • Previous expenses: R$ ${currentExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`));
+      console.log(chalk.green(`  • Current expenses: R$ ${newExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`));
+      console.log(chalk.yellow(`  • Expense increase: R$ ${(newExpenses - currentExpenses).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`));
+      console.log(chalk.white(`  • Average per item: R$ ${avgExpensePerItem.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`));
       
       const percentageOfExpected = (newExpenses / expectedMonthlyExpenses) * 100;
-      console.log(chalk.cyan(`Percentage of expected: ${percentageOfExpected.toFixed(2)}%`));
+      console.log(chalk.bold('\n📈 Coverage Analysis:'));
+      console.log(chalk.white(`  • Expected monthly: R$ ${expectedMonthlyExpenses.toLocaleString('pt-BR')}`));
+      const coverageColor = percentageOfExpected >= 90 ? chalk.green : percentageOfExpected >= 70 ? chalk.yellow : chalk.red;
+      console.log(coverageColor(`  • Coverage: ${percentageOfExpected.toFixed(2)}% of expected expenses`));
+      
+      console.log(chalk.bold('\n⏱️  Performance:'));
+      console.log(chalk.white(`  • Total duration: ${(result.duration / 1000 / 60).toFixed(2)} minutes`));
+      console.log(chalk.white(`  • Average per record: ${(result.duration / result.recordsSynced / 1000).toFixed(2)} seconds`));
+      
+      // Save results to file for documentation
+      const resultsLog = {
+        syncDate: new Date().toISOString(),
+        recordsSynced: result.recordsSynced,
+        totalOsRecords: newDbCount,
+        totalItemRecords: newItemDbCount,
+        totalExpenses: newExpenses,
+        expenseIncrease: newExpenses - currentExpenses,
+        percentageOfExpected: percentageOfExpected.toFixed(2),
+        duration: result.duration,
+        averageTimePerRecord: result.duration / result.recordsSynced
+      };
+      
+      const fs = require('fs');
+      const logPath = 'sync-results-os-complete.json';
+      fs.writeFileSync(logPath, JSON.stringify(resultsLog, null, 2));
+      console.log(chalk.gray(`\n📝 Results saved to ${logPath}`));
       
     } else {
       console.log(chalk.red(`\n❌ OS sync failed: ${result.error}`));

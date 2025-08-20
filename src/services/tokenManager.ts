@@ -107,7 +107,7 @@ export class TokenManager {
   /**
    * Get stored token from database
    */
-  private async getStoredToken(): Promise<TokenInfo | null> {
+  async getStoredToken(): Promise<TokenInfo | null> {
     try {
       const pool = await getConnection();
       

@@ -114,7 +114,7 @@ export class DadosVeiculosSyncService extends BaseSyncService {
           'bi_dados_veiculos',
           columns,
           mappedRecords,
-          false // Don't update on duplicate, append new records
+          true // Use UPSERT: Update on duplicate key
         );
 
         totalRecords += inserted;

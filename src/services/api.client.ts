@@ -11,7 +11,7 @@ export class ApiClient {
   private token: string | null = null;
   private tokenExpiry: Date | null = null;
   private lastRequestTime: number = 0;
-  private minRequestInterval: number = 100; // Minimum 100ms between requests
+  private minRequestInterval: number = 5000; // 5 seconds between requests to avoid rate limiting
   private useSharedToken: boolean = true; // Use shared token manager by default
 
   public static getInstance(): ApiClient {
@@ -187,8 +187,8 @@ export class ApiClient {
         logger.warn(`Rate limited, waiting ${delay}ms before retry (attempt ${attempt}/${apiConfig.retryAttempts})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         
-        // Increase minimum interval to avoid future rate limiting
-        this.minRequestInterval = Math.min(this.minRequestInterval * 1.5, 1000);
+        // Keep the 5 second interval to avoid future rate limiting
+        this.minRequestInterval = 5000;
         
         if (attempt < apiConfig.retryAttempts) {
           return this.executeWithRetry(operation, attempt + 1);

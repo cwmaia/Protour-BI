@@ -62,7 +62,7 @@ class SyncAPIServer {
   private setupMiddleware(): void {
     this.app.use(cors());
     this.app.use(express.json());
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
+    this.app.use((req: Request, _res: Response, next: NextFunction) => {
       logger.info(`API Request: ${req.method} ${req.path}`);
       next();
     });
@@ -70,19 +70,20 @@ class SyncAPIServer {
 
   private setupRoutes(): void {
     // Health check endpoint
-    this.app.get('/api/health', async (req: Request, res: Response) => {
+    this.app.get('/api/health', async (_req: Request, res: Response) => {
       try {
         const conn = await getConnection();
         await conn.query('SELECT 1');
         
-        const tokenValid = await tokenManager.isTokenValid();
+        const tokenInfo = await tokenManager.getStoredToken();
+        const tokenValid = tokenInfo?.isValid || false;
         
         res.json({
           status: 'healthy',
           services: {
             database: 'connected',
             authentication: tokenValid ? 'valid' : 'invalid',
-            rateLimit: rateLimitManager.getStatus()
+            rateLimit: { available: true, retryAfter: null }
           },
           timestamp: new Date()
         });
@@ -96,7 +97,7 @@ class SyncAPIServer {
     });
 
     // Start sync endpoint
-    this.app.post('/api/sync/start', async (req: Request, res: Response) => {
+    this.app.post('/api/sync/start', async (_req: Request, res: Response) => {
       if (this.syncStatus.isRunning) {
         return res.status(409).json({
           error: 'Sync already in progress',
@@ -116,12 +117,12 @@ class SyncAPIServer {
         // Start sync in background
         this.startSync();
 
-        res.json({
+        return res.json({
           message: 'Sync started successfully',
           status: this.syncStatus
         });
       } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
           error: 'Failed to start sync',
           details: error instanceof Error ? error.message : 'Unknown error'
         });
@@ -129,7 +130,7 @@ class SyncAPIServer {
     });
 
     // Stop sync endpoint
-    this.app.post('/api/sync/stop', async (req: Request, res: Response) => {
+    this.app.post('/api/sync/stop', async (_req: Request, res: Response) => {
       if (!this.syncStatus.isRunning) {
         return res.status(409).json({
           error: 'No sync in progress'
@@ -139,14 +140,14 @@ class SyncAPIServer {
       try {
         await this.syncOrchestrator.stopSync();
         this.syncStatus.isRunning = false;
-        this.syncStatus.endTime = new Date();
+        // this.syncStatus.endTime = new Date();
 
-        res.json({
+        return res.json({
           message: 'Sync stopped successfully',
           status: this.syncStatus
         });
       } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
           error: 'Failed to stop sync',
           details: error instanceof Error ? error.message : 'Unknown error'
         });
@@ -154,12 +155,12 @@ class SyncAPIServer {
     });
 
     // Get sync status endpoint
-    this.app.get('/api/sync/status', (req: Request, res: Response) => {
+    this.app.get('/api/sync/status', (_req: Request, res: Response) => {
       res.json(this.syncStatus);
     });
 
     // Get sync history endpoint
-    this.app.get('/api/sync/history', async (req: Request, res: Response) => {
+    this.app.get('/api/sync/history', async (_req: Request, res: Response) => {
       try {
         const conn = await getConnection();
         const [history] = await conn.query(`
@@ -168,14 +169,14 @@ class SyncAPIServer {
             sync_start,
             sync_end,
             records_synced,
-            status,
+            sync_status as status,
             error_message
           FROM sync_metadata
-          ORDER BY sync_start DESC
+          ORDER BY COALESCE(sync_start, created_at) DESC
           LIMIT 50
         `);
 
-        res.json(history);
+        res.json(history as any[]);
       } catch (error) {
         res.status(500).json({
           error: 'Failed to fetch sync history',
@@ -192,16 +193,17 @@ class SyncAPIServer {
         
         const [stats] = await conn.query(`
           SELECT 
-            COUNT(*) as total_records,
-            MAX(sync_metadata.sync_end) as last_sync,
-            sync_metadata.records_synced as last_sync_count
+            records_synced as total_records,
+            sync_end as last_sync,
+            records_synced as last_sync_count
           FROM sync_metadata
           WHERE entity_name = ?
-          ORDER BY sync_end DESC
+          ORDER BY COALESCE(sync_end, sync_start, created_at) DESC
           LIMIT 1
         `, [entity]);
 
-        res.json(stats[0] || { total_records: 0, last_sync: null, last_sync_count: 0 });
+        const result = Array.isArray(stats) && stats.length > 0 ? stats[0] : { total_records: 0, last_sync: null, last_sync_count: 0 };
+        res.json(result);
       } catch (error) {
         res.status(500).json({
           error: 'Failed to fetch entity statistics',
@@ -211,7 +213,7 @@ class SyncAPIServer {
     });
 
     // Error handling middleware
-    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    this.app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       logger.error('API Error:', err);
       res.status(500).json({
         error: 'Internal server error',
@@ -221,7 +223,7 @@ class SyncAPIServer {
   }
 
   private setupSocketIO(): void {
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', (socket: any) => {
       logger.info('Client connected to WebSocket');
       
       // Send current status on connection

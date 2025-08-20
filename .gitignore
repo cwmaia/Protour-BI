@@ -1,14 +1,19 @@
 # Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Build output
-dist/
-build/
-
-# Environment files
+# Environment variables
 .env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Production build
+dist/
+build/
 
 # Logs
 logs/
@@ -16,23 +21,106 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
-# Testing
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
 coverage/
+*.lcov
 .nyc_output/
 
-# IDE
+# IDE - VSCode
 .vscode/
-.idea/
-*.swp
-*.swo
-*~
+*.code-workspace
 
-# OS
+# IDE - IntelliJ/WebStorm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
 
 # Temporary files
 *.tmp
 *.temp
+tmp/
+temp/
 .cache/
+
+# Database dumps
+*.sql
+!src/scripts/database-schema.sql
+!src/scripts/createMissingTables.sql
+
+# Sync reports and outputs
+reports/
+sync_output.log
+sync-results-*.json
+api-server.log
+
+# Documentation drafts
+context/
+tasks/
+*.draft.md
+
+# Shell scripts (project specific)
+*.sh
+!scripts/*.sh
+
+# API documentation generated files
+swagger.yaml
+openapi.json
+
+# TypeScript
+*.tsbuildinfo
+.tscache/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Package manager locks (include for consistency)
+# Uncomment if you want to ignore lock files
+# package-lock.json
+# yarn.lock
+
+# Test files
+*.test.log
+test-results/
+
+# macOS specific
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Linux specific
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows specific
+Desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
