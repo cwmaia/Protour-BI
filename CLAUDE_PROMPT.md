@@ -4,7 +4,7 @@
 
 You are helping me develop and maintain the **Locavia Sync Service**, a data synchronization system between Locavia API and MySQL database for Power BI analytics.
 
-**GitHub Repository**: https://github.com/carlosmaia/locavia-sync-service
+**GitHub Repository**: https://github.com/cwmaia/Protour-BI
 
 ## Current Project Status
 
@@ -265,7 +265,7 @@ Before pushing changes:
 
 ## Contact & Support
 
-- **GitHub Issues**: https://github.com/carlosmaia/locavia-sync-service/issues
+- **GitHub Issues**: https://github.com/cwmaia/Protour-BI/issues
 - **Documentation**: Check README.md and WINDOWS_SETUP.md
 - **Logs**: Review `logs/error.log` for detailed errors
 
